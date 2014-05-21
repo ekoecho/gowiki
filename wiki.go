@@ -9,15 +9,7 @@ import (
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
-
-func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
-  m := validPath.FindStringSubmatch(r.URL.Path)
-  if m == nil {
-    http.NotFound(w, r)
-    return "", errors.New("Invalid Page Title")
-  }
-  return m[2], nil
-}
+var templates = template.Must(template.ParseFiles("tmpl/edit.html", "tmpl/view.html"))
 
 type Page struct {
   Title string
@@ -38,7 +30,14 @@ func loadPage(title string) (*Page, error) {
   return &Page{Title: title, Body: body}, nil
 }
 
-var templates = template.Must(template.ParseFiles("tmpl/edit.html", "tmpl/view.html"))
+func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
+  m := validPath.FindStringSubmatch(r.URL.Path)
+  if m == nil {
+    http.NotFound(w, r)
+    return "", errors.New("Invalid Page Title")
+  }
+  return m[2], nil
+}
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
   err := templates.ExecuteTemplate(w, tmpl+".html", p)
